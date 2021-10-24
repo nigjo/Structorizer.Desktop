@@ -25,6 +25,7 @@
 		<option type="Boolean" name="lineNumbering" title="Generate code line numbers" help="This option consecutively numbers the exported code lines."/>
 		<option type="Unsigned" name="dataLevelIncrement" title="Data level increment" help="The step in the level numbers in composed data items"/>
 	</plugin -->
+	<plugin title="StruktViewer" 		class="lu.fisch.structorizer.generators.StructViewerGenerator"       icon="" />
 	<plugin title="StrukTeX" 		class="lu.fisch.structorizer.generators.TexGenerator"       icon="" />
 	<plugin title="LaTeX/Algorithm"	class="lu.fisch.structorizer.generators.TexAlgGenerator"    icon="">
 		<option type="Enum" name="package" title="LaTeX package to be used" help="Choose your preferred package for algorithms">
