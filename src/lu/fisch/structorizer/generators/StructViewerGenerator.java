@@ -110,7 +110,7 @@ public class StructViewerGenerator extends Generator
     boolean disabled = _inst.isDisabled(false);
     for(String line : text.toArray())
     {
-      addCode(line, _indent, disabled);
+      addCode(transform(line), _indent, disabled);
     }
   }
 
@@ -213,13 +213,20 @@ public class StructViewerGenerator extends Generator
     StringList items = _case.getText();
     addCode("SELECT:" + items.get(0), _indent, _case.isDisabled(false));
     // code.add(_indent+"");
-    for(int i = 0; i < _case.qs.size(); i++)
+    for(int i = 0; i < _case.qs.size() - 1; i++)
     {
       addCode("CASE:" + items.get(i + 1), _indent, _case.isDisabled(false));
       // code.add(_indent+"");
       generateCode((Subqueue)_case.qs.get(i), _indent + this.getIndent());
       // code.add(_indent+"");
     }
+    String defaultCase = items.get(_case.qs.size());
+    if(!defaultCase.equals("%"))
+    {
+      addCode("DEFAULT:", _indent, _case.isDisabled(false));
+      generateCode((Subqueue)_case.qs.get(_case.qs.size() - 1), _indent + this.getIndent());
+    }
+
     addCode("ENDSELECT:", _indent, _case.isDisabled(false));
   }
 
