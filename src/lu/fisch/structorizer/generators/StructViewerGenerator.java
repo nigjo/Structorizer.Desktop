@@ -9,11 +9,14 @@ import lu.fisch.structorizer.elements.*;
 import lu.fisch.utils.StringList;
 
 /**
+ * Generates "Source Code" for the browser based "Structogram Editor" at
+ * https://nigjo.github.io/structogramview/.
  *
- * @author nigjo
+ * @author Jens Hofschröer
  */
 public class StructViewerGenerator extends Generator
 {
+
   public StructViewerGenerator()
   {
   }
@@ -95,13 +98,6 @@ public class StructViewerGenerator extends Generator
   }
 
   @Override
-  protected int insertComment(Element _element, String _indent, int _atLine)
-  {
-    code.add(_element.getComment().concatenate("\n"));
-    return 20;
-  }
-
-  @Override
   protected String generatePreamble(Root _root, String _indent, StringList _varNames)
   {
     return "";
@@ -110,45 +106,48 @@ public class StructViewerGenerator extends Generator
   @Override
   protected void generateCode(Instruction _inst, String _indent)
   {
-    StringList text = _inst.getText();
+    StringList text = _inst.getUnbrokenText();
+    boolean disabled = _inst.isDisabled(false);
     for(String line : text.toArray())
     {
-      code.add(_indent + line);
+      addCode(line, _indent, disabled);
     }
   }
 
   @Override
   protected void generateCode(Alternative _alt, String _indent)
   {
-    code.add(_indent + "IF:" + _alt.getText().getText());
+    boolean disabled = _alt.isDisabled(false);
+
+    addCode("IF:" + _alt.getUnbrokenText().getText(), _indent, disabled);
     generateCode(_alt.qTrue, _indent + this.getIndent());
     int elseCount = _alt.qFalse.getSize();
     if(elseCount > 0)
     {
-      code.add(_indent + "ELSE:");
+      addCode("ELSE:", _indent, disabled);
       generateCode(_alt.qFalse, _indent + this.getIndent());
     }
-    code.add(_indent + "ENDIF:");
+    addCode("ENDIF:", _indent, disabled);
   }
 
   @Override
   protected void generateCode(Call _call, String _indent)
   {
-    code.add(_indent + "CALL:" + _call.getText().getText());
+    addCode("CALL:" + _call.getText().getText(), _indent, _call.isDisabled(false));
   }
 
   @Override
   protected void generateCode(Jump _jump, String _indent)
   {
-    code.add(_indent + "BREAK:" + _jump.getText().getText());
+    addCode("BREAK:" + _jump.getText().getText(), _indent, _jump.isDisabled(false));
   }
 
   @Override
   protected void generateCode(For _for, String _indent)
   {
-    code.add(_indent + "FOR:" + _for.getText().getText());
+    addCode("FOR:" + _for.getText().getText(), _indent, _for.isDisabled(false));
     super.generateCode(_for, _indent); //To change body of generated methods, choose Tools | Templates.
-    code.add(_indent + "ENDFOR:");
+    addCode("ENDFOR:", _indent, _for.isDisabled(false));
   }
 
   @Override
@@ -159,67 +158,69 @@ public class StructViewerGenerator extends Generator
 
   @Override
   protected String generateHeader(Root _root, String _indent, String _procName,
-      StringList _paramNames, StringList _paramTypes, String _resultType, boolean _public)
+      StringList _paramNames, StringList _paramTypes, String _resultType,
+      boolean _public)
   {
     if(_procName != null && !_procName.isEmpty())
     {
-      code.add(_indent + "CAPTION:" + _procName);
+      addCode("CAPTION:" + _procName, _indent, _root.isDisabled(false));
     }
-    return super.generateHeader(_root, _indent, _procName, _paramNames, _paramTypes,
-        _resultType, _public); //To change body of generated methods, choose Tools | Templates.
+    return super.generateHeader(
+        _root, _indent, _procName, _paramNames, _paramTypes, _resultType, _public);
   }
 
   @Override
   protected void generateCode(Parallel _para, String _indent)
   {
-    code.add(_indent + "CONCURRENT:");
+    addCode("CONCURRENT:", _indent, _para.isDisabled(false));
     for(int i = 0; i < _para.qs.size(); i++)
     {
-      code.add(_indent + "THREAD:");
+      addCode("THREAD:", _indent, _para.isDisabled(false));
       generateCode((Subqueue)_para.qs.get(i), _indent + this.getIndent());
     }
-    code.add(_indent + "ENDCONCURRENT:");
+    addCode("ENDCONCURRENT:", _indent, _para.isDisabled(false));
   }
 
   @Override
   protected void generateCode(Forever _forever, String _indent)
   {
-    code.add(_indent + "REPEAT:");
+    addCode("REPEAT:", _indent, _forever.isDisabled(false));
     super.generateCode(_forever, _indent);
-    code.add(_indent + "ENDREPEAT:");
+    addCode("ENDREPEAT:", _indent, _forever.isDisabled(false));
   }
 
   @Override
   protected void generateCode(Repeat _repeat, String _indent)
   {
-    code.add(_indent + "LOOP:");
+    addCode("LOOP:", _indent, _repeat.isDisabled(false));
     super.generateCode(_repeat, _indent); //To change body of generated methods, choose Tools | Templates.
-    code.add(_indent + "ENDLOOP:" + _repeat.getText().getText());
+    addCode("ENDLOOP:" + _repeat.getText().getText(),
+        _indent, _repeat.isDisabled(false));
   }
 
   @Override
   protected void generateCode(While _while, String _indent)
   {
-    code.add(_indent + "LOOP:" + _while.getText().getText());
+    addCode("LOOP:" + _while.getText().getText(),
+        _indent, _while.isDisabled(false));
     super.generateCode(_while, _indent); //To change body of generated methods, choose Tools | Templates.
-    code.add(_indent + "ENDLOOP:");
+    addCode("ENDLOOP:", _indent, _while.isDisabled(false));
   }
 
   @Override
   protected void generateCode(Case _case, String _indent)
   {
     StringList items = _case.getText();
-    code.add(_indent + "SELECT:" + items.get(0));
+    addCode("SELECT:" + items.get(0), _indent, _case.isDisabled(false));
     // code.add(_indent+"");
     for(int i = 0; i < _case.qs.size(); i++)
     {
-      code.add(_indent + "CASE:" + items.get(i + 1));
+      addCode("CASE:" + items.get(i + 1), _indent, _case.isDisabled(false));
       // code.add(_indent+"");
       generateCode((Subqueue)_case.qs.get(i), _indent + this.getIndent());
       // code.add(_indent+"");
     }
-    code.add(_indent + "ENDSELECT:");
-
+    addCode("ENDSELECT:", _indent, _case.isDisabled(false));
   }
 
 }
